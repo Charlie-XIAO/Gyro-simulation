@@ -1,6 +1,10 @@
-% Gyroscope Simulation
+%%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%%
+%%                                       Gyroscope Tower Simulation                                        %%
+%%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%%
 
 clear all
+% clearvars
+% clear global
 close all
 
 g = 9.8;														% Gravitational acceleration (m/s^2)
@@ -10,7 +14,7 @@ a = 0.5;														% Length of axle (m)
 n = 20;															% Number of points on the rim
 M_rim = 1;														% Total mass of the rim (kg)
 M_axle = 1;														% Total mass of the axle (kg)
-S_rim = 2000 * (M_rim / n) * omega ^ 2;							% Stiffness of each rim link (kg/s^2)
+S_rim = 2000 * (M_rim / n) * omega ^ 2;							% StifWfness of each rim link (kg/s^2)
 D_rim = 0 * (M_rim / n) * omega;								% Damping constant of each rim link (kg/s)
 S_spoke = S_rim;												% Stiffnes of each spoke (kg/s^2)
 D_spoke = D_rim;												% Damping constant of each spoke (kg/s)
@@ -19,22 +23,21 @@ D_axle =  D_rim;												% Damping constant of the axle (kg/s)
 
 figure(1)														% Setup for animation
 nskip = 5;														% Clock skip
-ngyro = 2;														% Number of gyroscopes
+ngyro = 3;														% Number of gyroscopes
 lr = zeros(1, ngyro * n);										% Rim links
 ls = zeros(1, ngyro * 2 * n);									% Spoke links
 la = zeros(1, ngyro);											% Axle link
-X = zeros((n + 2) * ngyro, 3);
-jj = zeros((3 * n + 1) * ngyro, 1);
-kk = zeros((3 * n + 1) * ngyro, 1);
-S = zeros((3 * n + 1) * ngyro, 1);
-D = zeros((3 * n + 1) * ngyro, 1);
-Rzero = zeros((3 * n + 1) * ngyro, 1);
-M = zeros((n + 2) * ngyro, 1);
-for gyro = 1 : ngyro
-	offset = (gyro - 1) * (3 * n + 1);
-	lr((gyro - 1) * n + 1 : gyro * n) = offset + 1 : offset + n;
-	ls((gyro - 1) * 2 * n + 1 : gyro * 2 * n) = offset + n + 1 : offset + 3 * n;
-	la(gyro) = offset + 3 * n + 1;
+X = zeros((n + 2) * ngyro, 3);									% Coordinates of points
+jj = zeros((3 * n + 1) * ngyro, 1);								% Indices of points on one end of the links
+kk = zeros((3 * n + 1) * ngyro, 1);								% Indices of points on the other end of the links
+S = zeros((3 * n + 1) * ngyro, 1);								% Stiffness of links
+D = zeros((3 * n + 1) * ngyro, 1);								% Damping constant of links
+Rzero = zeros((3 * n + 1) * ngyro, 1);							% Rest length of links
+M = zeros((n + 2) * ngyro, 1);									% Mass of points
+for gyro = 1 : ngyro											% Update information for each gyroscope
+	lr((gyro - 1) * n + 1 : gyro * n) = (gyro - 1) * (3 * n + 1) + 1 : (gyro - 1) * (3 * n + 1) + n;
+	ls((gyro - 1) * 2 * n + 1 : gyro * 2 * n) = (gyro - 1) * (3 * n + 1) + n + 1 : (gyro - 1) * (3 * n + 1) + 3 * n;
+	la(gyro) = (gyro - 1) * (3 * n + 1) + 3 * n + 1;
 	[kmax, lmax, X((gyro - 1) * (n + 2) + 1 : gyro * (n + 2), :), ...
 		jj((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
 		kk((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
@@ -59,20 +62,14 @@ axis manual
 axis([-1.2 * r, 1.2 * r, -1.2 * r, 1.2 * r, -0.2, 5])
 drawnow
 
-
-fixed = n + 1;													% Index of point that will be held fixed
-forced = n + 2;													% Index of point to which external force will be applied
-
 tmax = 20;														% Duration of simulation (s)
 clockmax = 10000;												% Number of time steps
-dt = tmax / clockmax;											% (s)
-X_save = zeros(clockmax, 3);
-t_save = zeros(clockmax, 1);
+dt = tmax / clockmax;											% Time step (s)
 
 t_ext_start = 2;												% Time that external force starts (s)
-t_ext_stop =  3;												% Time that external force stops (s)
+t_ext_stop = 3;													% Time that external force stops (s)
 F_ext = 0.5 * [1, 0, 0] * M_rim * g;							% External force (kg·m/s^2)
-U = omega * [-X(:, 2), X(:, 1), zeros(kmax, 1)];				% Initial velocity
+U = omega * [-X(:, 2), X(:, 1), zeros(ngyro * kmax, 1)];		% Initial velocity
 
 for clock = 1 : clockmax
 
@@ -84,7 +81,7 @@ for clock = 1 : clockmax
 	TR = T ./ R;												% Link tensions divided by link lengths
 	FF = [TR, TR, TR] .* DX;									% Link force vectors
 
-	F = zeros(kmax, 3);											% Initialize force array for mass points 
+	F = zeros(ngyro * kmax, 3);									% Initialize force array for mass points 
 	F(:, 3) = -M * g;											% Apply gravitational force to each link point
 
 	for link = 1 : lmax
@@ -93,14 +90,15 @@ for clock = 1 : clockmax
 	end
 
 	if (t > t_ext_start) && (t < t_ext_stop)
-		F(forced, :) = F(forced, :) + F_ext;					% Apply external force during specified time interval
+		F(ngyro * (n + 2), :) = F(ngyro * (n + 2), :) + F_ext;	% Apply external force during specified time interval
 	end
 
 	U = U + dt * F ./ [M, M, M];								% Update velocities of all points
-	U(fixed, :) = 0; 											% The fixed point must have velocity zero
+	U(n + 1, :) = 0; 											% The fixed point must have velocity zero
+	for gyro = 2 : ngyro
+		U(gyro * (n + 2) - 1, :) = U((gyro - 1) * (n + 2));		% The bottom of upper gyroscope is attached to the top of its lower
+	end
 	X = X + dt * U;												% Update positions of all points
-	X_save(clock, :) = X(n + 2, :);								% Store positions for future plotting
-	t_save(clock) = t;											% Store current time for future plotting
   
 	%%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%%
 	%%                                                Animation                                                %%
@@ -131,6 +129,3 @@ for clock = 1 : clockmax
     end
 
 end
-
-figure(2)
-plot(t_save', X_save')
