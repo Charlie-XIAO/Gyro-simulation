@@ -19,7 +19,7 @@ S_axle =  S_rim;												% Stiffness of the axle (kg/s^2)
 D_axle =  D_rim;												% Damping constant of the axle (kg/s)
 
 [kmax, lmax, X, jj, kk, S, D, Rzero, M] = ...
-	wheel(r, a, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle);
+	wheel(r, a, 0, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle);
 
 figure(1)														% Setup for animation
 lr = 1 : n;														% Rim links
@@ -38,7 +38,7 @@ ha = plot3([X(jj(la), 1), X(kk(la), 1)]', [X(jj(la), 2), X(kk(la), 2)]', ...
 hold off
 axis equal
 axis manual
-axis(1.2 * [-r, r, -r, r, -a, a])
+axis([-1.2 * r, 1.2 * r, -1.2 * r, 1.2 * r, -0.2, 5])
 drawnow
 
 
