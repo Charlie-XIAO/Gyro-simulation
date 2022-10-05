@@ -3,7 +3,7 @@
 % Finally, the two axle points are linked to each other.
 
 function [kmax, lmax, X, jj, kk, S, D, Rzero, M] = ...
-	wheel(r, a, base, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle)
+	wheel(r, a, base, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle, pofs)
 
 % Input parameters:
 %	r															Radius of wheel
@@ -18,6 +18,7 @@ function [kmax, lmax, X, jj, kk, S, D, Rzero, M] = ...
 %	D_spoke														Damping constant of each spoke
 %	S_axle														Stiffness of the axle
 %	D_axle														Damping constant of the axle
+%	pofs														Offset of point indices
 
 % Output values:
 %	kmax														Number of points
@@ -44,11 +45,11 @@ X(n + 2, :) = [0, 0, base + a];									% Coordinate of the other end of the axl
 
 jj = zeros(lmax, 1); kk = zeros(lmax, 1);						% Initialization of links
 for k = 1 : n
-	jj(k) = k; kk(k) = k + 1 - (k == n) * n;					% Link to next point on rim    
-	jj(n + k) = k; kk(n + k) = n + 1;							% Link to one axle point
-	jj(2 * n + k) = k; kk(2 * n + k) = n + 2;					% Link to other axle point
+	jj(k) = k + pofs; kk(k) = k + 1 - (k == n) * n + pofs;		% Link to next point on rim    
+	jj(n + k) = k + pofs; kk(n + k) = n + 1 + pofs;				% Link to one axle point
+	jj(2 * n + k) = k + pofs; kk(2 * n + k) = n + 2 + pofs;		% Link to other axle point
 end
-jj(3 * n + 1) = n + 1; kk(3 * n + 1) = n + 2;					% Link between axle points
+jj(3 * n + 1) = n + 1 + pofs; kk(3 * n + 1) = n + 2 + pofs;		% Link between axle points
 
 M = [(M_rim / n) * ones(n, 1); (M_axle / 2) * ones(2, 1)];		% Mass of each point
 S = [S_rim * ones(n, 1); S_spoke * ones(2 * n, 1); S_axle];		% Stiffness of each link

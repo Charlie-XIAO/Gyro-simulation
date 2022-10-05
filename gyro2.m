@@ -5,7 +5,6 @@ close all
 
 g = 9.8;														% Gravitational acceleration (m/s^2)
 omega = 10;														% Initial angular velocity (rad/s)
-
 r = 1;															% Radius of wheel (m)
 a = 0.5;														% Length of axle (m)
 n = 20;															% Number of points on the rim
@@ -18,14 +17,33 @@ D_spoke = D_rim;												% Damping constant of each spoke (kg/s)
 S_axle =  S_rim;												% Stiffness of the axle (kg/s^2)
 D_axle =  D_rim;												% Damping constant of the axle (kg/s)
 
-[kmax, lmax, X, jj, kk, S, D, Rzero, M] = ...
-	wheel(r, a, 0, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle);
-
 figure(1)														% Setup for animation
-lr = 1 : n;														% Rim links
-ls = n + 1 : 3 * n;												% Spoke links
-la = 3 * n + 1;													% Axle link
-nskip = 5;
+nskip = 5;														% Clock skip
+ngyro = 2;														% Number of gyroscopes
+lr = zeros(1, ngyro * n);										% Rim links
+ls = zeros(1, ngyro * 2 * n);									% Spoke links
+la = zeros(1, ngyro);											% Axle link
+X = zeros((n + 2) * ngyro, 3);
+jj = zeros((3 * n + 1) * ngyro, 1);
+kk = zeros((3 * n + 1) * ngyro, 1);
+S = zeros((3 * n + 1) * ngyro, 1);
+D = zeros((3 * n + 1) * ngyro, 1);
+Rzero = zeros((3 * n + 1) * ngyro, 1);
+M = zeros((n + 2) * ngyro, 1);
+for gyro = 1 : ngyro
+	offset = (gyro - 1) * (3 * n + 1);
+	lr((gyro - 1) * n + 1 : gyro * n) = offset + 1 : offset + n;
+	ls((gyro - 1) * 2 * n + 1 : gyro * 2 * n) = offset + n + 1 : offset + 3 * n;
+	la(gyro) = offset + 3 * n + 1;
+	[kmax, lmax, X((gyro - 1) * (n + 2) + 1 : gyro * (n + 2), :), ...
+		jj((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
+		kk((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
+		S((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
+		D((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
+		Rzero((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
+		M((gyro - 1) * (n + 2) + 1 : gyro * (n + 2))] = ...
+		wheel(r, a, (gyro - 1) * a, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle, (gyro - 1) * (n + 2));
+end
 
 hr = plot3([X(jj(lr), 1), X(kk(lr), 1)]', [X(jj(lr), 2), X(kk(lr), 2)]', ...
 	[X(jj(lr), 3), X(kk(lr), 3)]', "r", "linewidth", 3);
