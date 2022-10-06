@@ -25,19 +25,26 @@ You need to have MATLAB installed. The programs are tested on version 9.12.0, 18
 git clone https://github.com/Charlie-XIAO/Gyro-simulation.git
 ```
 
-2. Run `gyro2.m` in MATLAB, or use the following command line in the corresponding directory:
+2. Run `gyro_tower.m` in MATLAB, or use the following command line in the corresponding directory:
 ```
-matlab -batch "gyro2; exit"
+matlab -batch "gyro_tower; exit"
 ```
+
+3. Note that when running `gyro_tower.m`, you will be prompted to input:
+
+   - The number of gyroscopes in the gyroscope tower, positive integer expected.
+
+   - Whether or not to save a video of the simulation, `true` or `false` expected. If you are doing so, make sure you have `./videos` directory created.
 
 You may figure out the file structures of this repository as follows:
 
 ```
 Gyro-simulation
  │  README.md
- │  .gitignore    
- │  gyro2.m                  Main code for gyroscope tower simulation.
- |  wheel.m                  The wheel function, returns data for modeling.
+ │  .gitignore
+ │  gyro_tower.m                Main code for gyroscope tower simulation.
+ |  wheel.m                     The wheel function, returns data for modeling.
+ |  videos.zip                  Simulation videos archive.
 ```
 
 ## Results
