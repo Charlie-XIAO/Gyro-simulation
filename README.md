@@ -30,7 +30,12 @@ git clone https://github.com/Charlie-XIAO/Gyro-simulation.git
 matlab -batch "gyro_tower; exit"
 ```
 
-3. Note that when running `gyro_tower.m`, you will be prompted to input:
+3. Use the following command line to unzip the simulation videos:
+```
+unzip videos.zip
+```
+
+4. Note that when running `gyro_tower.m`, you will be prompted to input:
 
    - The number of gyroscopes in the gyroscope tower, positive integer expected.
 
