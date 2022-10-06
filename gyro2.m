@@ -6,6 +6,14 @@ clearvars
 clear global
 close all
 
+ngyro = input("How many gyroscopes in the gyro-tower? [int >= 1] ");
+video = input("Do you want to save a movie? [true/false] ");
+if video
+    writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d.mp4", ngyro), "MPEG-4");
+    writerObj.FrameRate = 30;
+    open(writerObj);
+end
+
 g = 9.8;														% Gravitational acceleration (m/s^2)
 omega = 10;                                                     % Initial angular velocity (rad/s)
 r = 1;                                                          % Radius of wheel (m)
@@ -22,7 +30,6 @@ D_axle =  D_rim;                                                % Damping consta
 
 figure(1)                                                       % Setup for animation
 nskip = 5;                                                      % Clock skip
-ngyro = 2;                                                      % Number of gyroscopes
 lr = zeros(1, ngyro * n);                                       % Rim links
 ls = zeros(1, ngyro * 2 * n);                                   % Spoke links
 la = zeros(1, ngyro);                                           % Axle link
@@ -62,7 +69,7 @@ ha = plot3([X(jj(la), 1), X(kk(la), 1)]', [X(jj(la), 2), X(kk(la), 2)]', ...
 hold off
 axis equal
 axis manual
-axis([-1.2 * r, 1.2 * r, -1.2 * r, 1.2 * r, -0.2, 5])
+axis(1.2 * [-r, r, -r, r, -0.5, a * ngyro])
 drawnow
 
 tmax = 20;                                                      % Duration of simulation (s)
@@ -130,6 +137,16 @@ for clock = 1 : clockmax
             ha(c).ZData = [X(jj(l), 3), X(kk(l), 3)];
         end
         drawnow
+
+        if video
+            frame = getframe(gcf);
+            writeVideo(writerObj, frame);
+        end
+
     end
 
+end
+
+if video
+    close(writerObj);
 end
