@@ -53,18 +53,15 @@ Gyro-simulation
 
 To be done...
 
-<img src="./examples/gyro-tower-1-irr.gif" width=45%>
-<img src="./examples/gyro-tower-1-rev.gif" width=45%>
+<img src="./examples/gyro-tower-1-irr.gif" width=45%> <img src="./examples/gyro-tower-1-rev.gif" width=45%>
 
 Simulation of a single gyroscope spinning with an initial angular velocity. The left and the right gyroscopes are spinning in opposite directions. A horizontal external force is applied to the top of its axle from the 2nd second to the 3rd second.
 
-<img src="./examples/gyro-tower-2-irr.gif" width=45%>
-<img src="./examples/gyro-tower-2-rev.gif" width=45%>
+<img src="./examples/gyro-tower-2-irr.gif" width=45%> <img src="./examples/gyro-tower-2-rev.gif" width=45%>
 
 Simulation of two gyroscopes spinning with an initial angular velocity. The gyroscopes on the left spin in the same direction while those on the right spin in the opposite directions. A horizontal external force is applied to the top of the axle of the top gyroscope from the 2nd second to the 3rd second.
 
-<img src="./examples/gyro-tower-3-irr.gif" width=45%>
-<img src="./examples/gyro-tower-3-rev.gif" width=45%>
+<img src="./examples/gyro-tower-3-irr.gif" width=45%> <img src="./examples/gyro-tower-3-rev.gif" width=45%>
 
 Simulation of three gyroscopes spinning with an initial angular velocity. The gyroscopes on the left spin in the same direction while those on adjacent gyroscopes on the right spin in opposite directions. A horizontal external force is applied to the top of the axle of the top gyroscope from the 2nd second to the 3rd second.
 
