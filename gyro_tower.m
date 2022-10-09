@@ -7,9 +7,23 @@ clear global
 close all
 
 ngyro = input("How many gyroscopes in the gyro-tower? [int >= 1] ");
+while mod(ngyro, 1) ~= 0 || ngyro < 1
+    ngyro = input("Invalid. How many gyroscopes in the gyro-tower? [int >= 1] ");
+end
+reverse = input("Do you want each gyroscope to spin in reverse direction? [true/false] ");
+while reverse ~= true && reverse ~= false
+    reverse = input("Invalid. Do you want to save a movie? [true/false] ");
+end
 video = input("Do you want to save a movie? [true/false] ");
+while video ~= true && video ~= false
+    video = input("Invalid. Do you want to save a movie? [true/false] ");
+end
 if video
-    writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d.mp4", ngyro), "MPEG-4");
+    if reverse
+        writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d-rev.mp4", ngyro), "MPEG-4");
+    else
+        writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d-irr.mp4", ngyro), "MPEG-4");
+    end
     writerObj.FrameRate = 30;
     open(writerObj);
 end
@@ -27,6 +41,9 @@ S_spoke = S_rim;                                                % Stiffnes of ea
 D_spoke = D_rim;                                                % Damping constant of each spoke (kg/s)
 S_axle =  S_rim;                                                % Stiffness of the axle (kg/s^2)
 D_axle =  D_rim;                                                % Damping constant of the axle (kg/s)
+SS = S_rim * 10;                                                % Stiffness of the invisible link for simplicity (kg/s^2)
+DD = D_rim * 10;                                                % Damping constant of the invisible link for simplicity (kg/s)
+RRzero = a / 1000;                                              % Rest length of the invisible link for simplicity (m)
 
 figure(1)                                                       % Setup for animation
 nskip = 5;                                                      % Clock skip
@@ -53,7 +70,7 @@ for gyro = 1 : ngyro                                            % Update informa
         D((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
         Rzero((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
         M((gyro - 1) * (n + 2) + 1 : gyro * (n + 2))] = ...
-        wheel(r, a, (gyro - 1) * a, n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle, (gyro - 1) * (n + 2));
+        wheel(r, a, (gyro - 1) * (a + RRzero), n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle, (gyro - 1) * (n + 2));
     kmax = kmax + ksing;
     lmax = lmax + lsing;
 end
@@ -80,7 +97,19 @@ t_ext_start = 2;                                                % Time that exte
 t_ext_stop = 3;                                                 % Time that external force stops (s)
 F_ext = 0.5 * [1, 0, 0] * M_rim * g;                            % External force (kg·m/s^2)
 forced = ngyro * (n + 2);                                       % The point where external force is applied
-U = omega * [-X(:, 2), X(:, 1), zeros(kmax, 1)];                % Initial velocity
+if reverse
+    U = zeros(kmax, 3);                                                                 % Initial velocity
+    for gyro = 1 : ngyro
+        tmptmp = (gyro - 1) * ksing + 1 : gyro * ksing;
+        if mod(gyro, 2) == 0
+            U(tmptmp, :) = omega * [-X(tmptmp, 2), X(tmptmp, 1), zeros(ksing, 1)];      % Update in one direction
+        else
+            U(tmptmp, :) = omega * [X(tmptmp, 2), -X(tmptmp, 1), zeros(ksing, 1)];      % Update in the reverse direction
+        end
+    end
+else
+    U = omega * [-X(:, 2), X(:, 1), zeros(kmax, 1)];                                    % Initial velocity all same direction
+end
 
 for clock = 1 : clockmax
 
@@ -104,11 +133,24 @@ for clock = 1 : clockmax
         F(forced, :) = F(forced, :) + F_ext;                    % Apply external force during specified time interval
     end
 
+    for gyro = 2 : ngyro
+        DXX = X(gyro * (n + 2) - 1, :) - X((gyro - 1) * (n + 2), :);
+        DUU = U(gyro * (n + 2) - 1, :) - U((gyro - 1) * (n + 2), :);
+        RR = sqrt(sum(DXX .^ 2, 2));
+        TT = SS * (RR - RRzero) + (DD / RR) * sum(DXX .* DUU, 2);
+        TTRR = TT / RR;
+        FFFF = [TTRR, TTRR, TTRR] .* DXX;
+        F(gyro * (n + 2) - 1, :) = F(gyro * (n + 2) - 1, :) - FFFF;
+        F((gyro - 1) * (n + 2), :) = F((gyro - 1) * (n + 2), :) + FFFF;
+    end
+
     U = U + dt * F ./ [M, M, M];                                % Update velocities of all points
     U(n + 1, :) = 0;                                            % The fixed point must have velocity zero
-    for gyro = 2 : ngyro
-        U(gyro * (n + 2) - 1, :) = U((gyro - 1) * (n + 2), :);  % The bottom of upper gyroscope is attached to the top of its lower
-    end
+    % for gyro = 2 : ngyro
+    %     U(gyro * (n + 2) - 1, :) = 0;
+    %     U(gyro * (n + 2) - 1, :) = U((gyro - 1) * (n + 2), :);  % The bottom of upper gyroscope is attached to the top of its lower
+    % end
+
     X = X + dt * U;                                             % Update positions of all points
   
     %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%%

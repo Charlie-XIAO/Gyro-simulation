@@ -1,4 +1,4 @@
-# Simulation of Gyroscopes
+# Gyro-tower Simulation
 
 > Modeling and Simulation in Science, Engineering, and Economics | Courant Institute of Mathematical Sciences | New York University
 
@@ -30,14 +30,11 @@ git clone https://github.com/Charlie-XIAO/Gyro-simulation.git
 matlab -batch "gyro_tower; exit"
 ```
 
-3. Use the following command line to unzip the simulation videos:
-```
-unzip videos.zip
-```
-
-4. Note that when running `gyro_tower.m`, you will be prompted to input:
+1. Note that when running `gyro_tower.m`, you will be prompted to input:
 
    - The number of gyroscopes in the gyroscope tower, positive integer expected.
+
+   - Whether or not to make adjacent gyroscopes spin in opposite directions, `true` or `false` expected.
 
    - Whether or not to save a video of the simulation, `true` or `false` expected. If you are doing so, make sure you have `./videos` directory created.
 
@@ -45,11 +42,11 @@ You may figure out the file structures of this repository as follows:
 
 ```
 Gyro-simulation
- │  README.md
- │  .gitignore
  │  gyro_tower.m                Main code for gyroscope tower simulation.
  |  wheel.m                     The wheel function, returns data for modeling.
- |  videos.zip                  Simulation videos archive.
+ |____  examples
+         |  gyro-tower-*-irr.gif  The gif example simulations with gyroscopes spinning all in same direction.
+         |  gyro-tower-*-rev.gif  The gif example simulations with adjacent gyroscopes spinning in opposite directions.
 ```
 
 ## Results
@@ -58,4 +55,4 @@ To be done...
 
 ## References
 
-Thanks for Professor [*Charles S. Peskin*](https://www.math.nyu.edu/~peskin/)'s tutoring and [notes](https://www.math.nyu.edu/~peskin/modsim_lecture_notes/index.html). Other references include [MATLAB](https://www.mathworks.com/help/matlab/) documentation, [Wikipedia page](https://en.wikipedia.org/wiki/Gyroscope) of gyroscopes, and Python library [pygyro](https://github.com/pyccel/pygyro).
+Thanks for Professor [*Charles S. Peskin*](https://www.math.nyu.edu/~peskin/)'s tutoring and [notes](https://www.math.nyu.edu/~peskin/modsim_lecture_notes/index.html). Other references include [MATLAB](https://www.mathworks.com/help/matlab/) documentation, [Wikipedia page](https://en.wikipedia.org/wiki/Gyroscope) of gyroscopes, and Python library [pygyro](https://github.com/pyccel/pygyro). Also thanks Teaching Assistant [Mengjian Hua](mh5113@nyu.edu) for his suggestion on this project.
