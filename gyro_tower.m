@@ -90,7 +90,7 @@ axis manual
 axis(1.2 * [-r, r, -r, r, -0.5, a * ngyro])
 drawnow
 
-tmax = 20;                                                      % Duration of simulation (s)
+tmax = 10;                                                      % Duration of simulation (s)
 clockmax = 50000;                                               % Number of time steps
 dt = tmax / clockmax;                                           % Time step (s)
 t_save = zeros(clockmax, 1);                                    % Save each time step
@@ -99,8 +99,8 @@ GPE_save = zeros(clockmax, 1);                                  % Save gravitati
 EPE_save = zeros(clockmax, 1);                                  % Save elastic potential energy for each time step
 E_save = zeros(clockmax, 1);                                    % Save total energy for each time step
 
-t_ext_start = 2;                                                % Time that external force starts (s)
-t_ext_stop = 3;                                                 % Time that external force stops (s)
+t_ext_start = 1;                                                % Time that external force starts (s)
+t_ext_stop = 2;                                                 % Time that external force stops (s)
 F_ext = 0.5 * [1, 0, 0] * M_rim * g;                            % External force (kg·m/s^2)
 forced = ngyro * (n + 2);                                       % The point where external force is applied
 if reverse
