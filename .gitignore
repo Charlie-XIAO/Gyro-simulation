@@ -4,5 +4,8 @@
 # Original videos
 videos/
 
+# Plot images
+images/
+
 # Draft files
 draft.*

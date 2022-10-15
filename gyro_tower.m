@@ -63,16 +63,17 @@ for gyro = 1 : ngyro                                            % Update informa
     lr((gyro - 1) * n + 1 : gyro * n) = (gyro - 1) * (3 * n + 1) + 1 : (gyro - 1) * (3 * n + 1) + n;
     ls((gyro - 1) * 2 * n + 1 : gyro * 2 * n) = (gyro - 1) * (3 * n + 1) + n + 1 : (gyro - 1) * (3 * n + 1) + 3 * n;
     la(gyro) = (gyro - 1) * (3 * n + 1) + 3 * n + 1;
-    [ksing, lsing, X((gyro - 1) * (n + 2) + 1 : gyro * (n + 2), :), ...
-        jj((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
-        kk((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
-        S((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
-        D((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
-        Rzero((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...
-        M((gyro - 1) * (n + 2) + 1 : gyro * (n + 2))] = ...
+    [ksing, lsing, ...                                                  % Number of points and links within a single gyroscope 
+        X((gyro - 1) * (n + 2) + 1 : gyro * (n + 2), :), ...            % Coordinates of points within a single gyroscope
+        jj((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...      % Indices of points on one end of the links within a single gyroscope
+        kk((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...      % Indices of points on the other end of the links within a single gyroscope
+        S((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...       % Stiffness of links within a single gyroscope
+        D((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...       % Damping constant of links within a single gyroscope
+        Rzero((gyro - 1) * (3 * n + 1) + 1 : gyro * (3 * n + 1)), ...   % Rest length of links within a single gyroscope
+        M((gyro - 1) * (n + 2) + 1 : gyro * (n + 2))] = ...             % Mass of points within a single gyroscope
         wheel(r, a, (gyro - 1) * (a + RRzero), n, M_rim, M_axle, S_rim, D_rim, S_spoke, D_spoke, S_axle, D_axle, (gyro - 1) * (n + 2));
-    kmax = kmax + ksing;
-    lmax = lmax + lsing;
+    kmax = kmax + ksing;                                                % Update total number of points
+    lmax = lmax + lsing;                                                % Update total number of links
 end
 
 hr = plot3([X(jj(lr), 1), X(kk(lr), 1)]', [X(jj(lr), 2), X(kk(lr), 2)]', ...
@@ -90,8 +91,13 @@ axis(1.2 * [-r, r, -r, r, -0.5, a * ngyro])
 drawnow
 
 tmax = 20;                                                      % Duration of simulation (s)
-clockmax = 10000;                                               % Number of time steps
+clockmax = 50000;                                               % Number of time steps
 dt = tmax / clockmax;                                           % Time step (s)
+t_save = zeros(clockmax, 1);                                    % Save each time step
+KE_save = zeros(clockmax, 1);                                   % Save kinetic energy for each time step
+GPE_save = zeros(clockmax, 1);                                  % Save gravitational potential energy for each time step
+EPE_save = zeros(clockmax, 1);                                  % Save elastic potential energy for each time step
+E_save = zeros(clockmax, 1);                                    % Save total energy for each time step
 
 t_ext_start = 2;                                                % Time that external force starts (s)
 t_ext_stop = 3;                                                 % Time that external force stops (s)
@@ -100,7 +106,7 @@ forced = ngyro * (n + 2);                                       % The point wher
 if reverse
     U = zeros(kmax, 3);                                                                 % Initial velocity
     for gyro = 1 : ngyro
-        tmptmp = (gyro - 1) * ksing + 1 : gyro * ksing;
+        tmptmp = (gyro - 1) * ksing + 1 : gyro * ksing;                                 % Temporary list for update
         if mod(gyro, 2) == 0
             U(tmptmp, :) = omega * [-X(tmptmp, 2), X(tmptmp, 1), zeros(ksing, 1)];      % Update in one direction
         else
@@ -117,7 +123,8 @@ for clock = 1 : clockmax
     DX = X(jj, :) - X(kk, :);                                   % Link vectors
     DU = U(jj, :) - U(kk, :);                                   % Link velocity difference vectors
     R = sqrt(sum(DX .^ 2, 2));                                  % Link lengths
-    T = S .* (R - Rzero) + (D ./ R) .* sum(DX .* DU, 2);        % Link tensions
+    DR = R - Rzero;                                             % Elastic changes of lengths
+    T = S .* DR + (D ./ R) .* sum(DX .* DU, 2);                 % Link tensions
     TR = T ./ R;                                                % Link tensions divided by link lengths
     FF = [TR, TR, TR] .* DX;                                    % Link force vectors
 
@@ -129,29 +136,33 @@ for clock = 1 : clockmax
         F(jj(link), :) = F(jj(link), :) - FF(link, :);          % Add force of the link to the other end
     end
 
-    if (t > t_ext_start) && (t < t_ext_stop)
+    if (t > t_ext_start) && (t < t_ext_stop)                    % In the specified time interval
         F(forced, :) = F(forced, :) + F_ext;                    % Apply external force during specified time interval
     end
 
-    for gyro = 2 : ngyro
-        DXX = X(gyro * (n + 2) - 1, :) - X((gyro - 1) * (n + 2), :);
-        DUU = U(gyro * (n + 2) - 1, :) - U((gyro - 1) * (n + 2), :);
-        RR = sqrt(sum(DXX .^ 2, 2));
-        TT = SS * (RR - RRzero) + (DD / RR) * sum(DXX .* DUU, 2);
-        TTRR = TT / RR;
-        FFFF = [TTRR, TTRR, TTRR] .* DXX;
-        F(gyro * (n + 2) - 1, :) = F(gyro * (n + 2) - 1, :) - FFFF;
-        F((gyro - 1) * (n + 2), :) = F((gyro - 1) * (n + 2), :) + FFFF;
+    EE = 0;                                                                 % Total elastic potential energy within invisible links
+    for gyro = 2 : ngyro                                                    % Dealing with invisible links between top of the lower gyroscope and bottom of the upper one
+        DXX = X(gyro * (n + 2) - 1, :) - X((gyro - 1) * (n + 2), :);        % Link vector
+        DUU = U(gyro * (n + 2) - 1, :) - U((gyro - 1) * (n + 2), :);        % Link velocity difference vector
+        RR = sqrt(sum(DXX .^ 2, 2));                                        % Link length
+        DRR = RR - RRzero;                                                  % Elastic change of length
+        TT = SS * DRR + (DD / RR) * sum(DXX .* DUU, 2);                     % Link tension
+        TTRR = TT / RR;                                                     % Link tension divided by link length
+        FFFF = [TTRR, TTRR, TTRR] .* DXX;                                   % Link force vector
+        F(gyro * (n + 2) - 1, :) = F(gyro * (n + 2) - 1, :) - FFFF;         % Add force of the link to one end
+        F((gyro - 1) * (n + 2), :) = F((gyro - 1) * (n + 2), :) + FFFF;     % Add force of the link to the other end
+        EE = EE + 1 / 2 * SS * DRR ^ 2;                                     % Add elastic potential energy to the total potential energy within invisible links
     end
 
     U = U + dt * F ./ [M, M, M];                                % Update velocities of all points
     U(n + 1, :) = 0;                                            % The fixed point must have velocity zero
-    % for gyro = 2 : ngyro
-    %     U(gyro * (n + 2) - 1, :) = 0;
-    %     U(gyro * (n + 2) - 1, :) = U((gyro - 1) * (n + 2), :);  % The bottom of upper gyroscope is attached to the top of its lower
-    % end
-
     X = X + dt * U;                                             % Update positions of all points
+
+    t_save(clock) = t;                                          % Save current time step
+    E_save(clock) = ...                                         % Save current total energy
+        1 / 2 * sum(M .* sqrt(sum(U .^ 2, 2)) .^ 2) + ...       % Total kinetic energy
+        sum(M .* X(:, 3) * g) + ...                             % Total gravitational potential energy
+        1 / 2 * sum(S .* DR .^ 2) + EE;                         % Total elastic potential energy
   
     %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%% %%%%%%%%%%
     %%                                                Animation                                                %%
@@ -188,6 +199,9 @@ for clock = 1 : clockmax
     end
 
 end
+
+figure(2)
+plot(t_save', E_save')
 
 if video
     close(writerObj);
