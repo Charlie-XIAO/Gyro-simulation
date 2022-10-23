@@ -38,7 +38,7 @@ R_rim = 2 * r * sin((2 * pi) / (2 * n));                        % Length of each
 X = zeros(n + 2, 3);                                            % Initialization of coordinates
 for k = 1 : n
 	theta = 2 * pi * k / n;
-	X(k, :) = r * [cos(theta), sin(theta), base + a / 2];       % Coordinates of points on the rim
+	X(k, :) = [r * cos(theta), r * sin(theta), base + a / 2];   % Coordinates of points on the rim
 end
 X(n + 1, :) = [0, 0, base];                                     % Coordinate of one end of the axle
 X(n + 2, :) = [0, 0, base + a];                                 % Coordinate of the other end of the axle

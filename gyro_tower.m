@@ -6,6 +6,25 @@ clearvars
 clear global
 close all
 
+g = 9.8;														% Gravitational acceleration (m/s^2)
+omega = 30.0;                                                   % Initial angular velocity (rad/s)
+r = 1.0;                                                        % Radius of wheel (m)
+a = 0.5;                                                        % Length of axle (m)
+n = 20;                                                         % Number of points on the rim
+M_rim = 1;                                                      % Total mass of the rim (kg)
+M_axle = 1;                                                     % Total mass of the axle (kg)
+S_rim = 2000 * (M_rim / n) * omega ^ 2;                         % Stiffness of each rim link (kg/s^2)
+D_rim = 0 * (M_rim / n) * omega;                                % Damping constant of each rim link (kg/s)
+S_spoke = S_rim;                                                % Stiffnes of each spoke (kg/s^2)
+D_spoke = D_rim;                                                % Damping constant of each spoke (kg/s)
+S_axle =  S_rim;                                                % Stiffness of the axle (kg/s^2)
+D_axle =  D_rim;                                                % Damping constant of the axle (kg/s)
+SS = S_rim * 10;                                                % Stiffness of the invisible link for simplicity (kg/s^2)
+DD = D_rim * 10;                                                % Damping constant of the invisible link for simplicity (kg/s)
+RRzero = a / 1000;                                              % Rest length of the invisible link for simplicity (m)
+
+specifier_rev = sprintf("%d-rev-%.1f-%.1f-%.1f", ngyro, r, a, omega);
+specifier_irr = sprintf("%d-irr-%.1f-%.1f-%.1f", ngyro, r, a, omega);
 ngyro = input("How many gyroscopes in the gyro-tower? [int >= 1] ");
 while mod(ngyro, 1) ~= 0 || ngyro < 1
     ngyro = input("Invalid. How many gyroscopes in the gyro-tower? [int >= 1] ");
@@ -20,30 +39,13 @@ while video ~= true && video ~= false
 end
 if video
     if reverse
-        writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d-rev.mp4", ngyro), "MPEG-4");
+        writerObj = VideoWriter(sprintf("./videos/%s.mp4", specifier_rev), "MPEG-4");
     else
-        writerObj = VideoWriter(sprintf("./videos/gyro-tower-%d-irr.mp4", ngyro), "MPEG-4");
+        writerObj = VideoWriter(sprintf("./videos/%s.mp4", specifier_irr), "MPEG-4");
     end
     writerObj.FrameRate = 30;
     open(writerObj);
 end
-
-g = 9.8;														% Gravitational acceleration (m/s^2)
-omega = 10;                                                     % Initial angular velocity (rad/s)
-r = 1;                                                          % Radius of wheel (m)
-a = 0.5;                                                        % Length of axle (m)
-n = 20;                                                         % Number of points on the rim
-M_rim = 1;                                                      % Total mass of the rim (kg)
-M_axle = 1;                                                     % Total mass of the axle (kg)
-S_rim = 2000 * (M_rim / n) * omega ^ 2;                         % Stiffness of each rim link (kg/s^2)
-D_rim = 0 * (M_rim / n) * omega;                                % Damping constant of each rim link (kg/s)
-S_spoke = S_rim;                                                % Stiffnes of each spoke (kg/s^2)
-D_spoke = D_rim;                                                % Damping constant of each spoke (kg/s)
-S_axle =  S_rim;                                                % Stiffness of the axle (kg/s^2)
-D_axle =  D_rim;                                                % Damping constant of the axle (kg/s)
-SS = S_rim * 10;                                                % Stiffness of the invisible link for simplicity (kg/s^2)
-DD = D_rim * 10;                                                % Damping constant of the invisible link for simplicity (kg/s)
-RRzero = a / 1000;                                              % Rest length of the invisible link for simplicity (m)
 
 figure(1)                                                       % Setup for animation
 nskip = 5;                                                      % Clock skip
@@ -94,10 +96,8 @@ tmax = 10;                                                      % Duration of si
 clockmax = 50000;                                               % Number of time steps
 dt = tmax / clockmax;                                           % Time step (s)
 t_save = zeros(clockmax, 1);                                    % Save each time step
-KE_save = zeros(clockmax, 1);                                   % Save kinetic energy for each time step
-GPE_save = zeros(clockmax, 1);                                  % Save gravitational potential energy for each time step
-EPE_save = zeros(clockmax, 1);                                  % Save elastic potential energy for each time step
 E_save = zeros(clockmax, 1);                                    % Save total energy for each time step
+H_save = zeros(clockmax, 1);
 
 t_ext_start = 1;                                                % Time that external force starts (s)
 t_ext_stop = 2;                                                 % Time that external force stops (s)
@@ -159,6 +159,7 @@ for clock = 1 : clockmax
     X = X + dt * U;                                             % Update positions of all points
 
     t_save(clock) = t;                                          % Save current time step
+    H_save(clock) = X((n + 2) * ngyro, 3);
     E_save(clock) = ...                                         % Save current total energy
         1 / 2 * sum(M .* sqrt(sum(U .^ 2, 2)) .^ 2) + ...       % Total kinetic energy
         sum(M .* X(:, 3) * g) + ...                             % Total gravitational potential energy
@@ -200,8 +201,15 @@ for clock = 1 : clockmax
 
 end
 
-figure(2)
-plot(t_save', E_save')
+% figure(2)
+% plot(t_save', E_save')
+figure(3)
+plot(t_save', H_save')
+if reverse
+    saveas(gcf, sprintf("./images/param/%s.fig", specifier_rev));
+else
+    saveas(gcf, sprintf("./images/param/%s.fig", specifier_irr));
+end
 
 if video
     close(writerObj);
