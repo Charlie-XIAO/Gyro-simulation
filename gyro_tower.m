@@ -203,13 +203,14 @@ end
 
 % figure(2)
 % plot(t_save', E_save')
-figure(3)
-plot(t_save', H_save')
-if reverse
-    saveas(gcf, sprintf("./images/param/%s.fig", specifier_rev));
-else
-    saveas(gcf, sprintf("./images/param/%s.fig", specifier_irr));
-end
+
+%figure(3)
+%plot(t_save', H_save')
+%if reverse
+%    saveas(gcf, sprintf("./images/param/%s.fig", specifier_rev));
+%else
+%    saveas(gcf, sprintf("./images/param/%s.fig", specifier_irr));
+%end
 
 if video
     close(writerObj);

@@ -1,11 +1,14 @@
+# Extraction program
+extract.*
+
 # MathWorks autosaved files
 *.asv
 
-# Original videos
-videos/
-
-# Plot images
+# Results
 images/
+videos/
+videos.zip
+images.zip
 
 # Draft files
 draft.*

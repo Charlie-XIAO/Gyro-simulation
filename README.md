@@ -38,32 +38,23 @@ matlab -batch "gyro_tower; exit"
 
    - Whether or not to save a video of the simulation, `true` or `false` expected. If you are doing so, make sure you have `./videos` directory created.
 
-You may figure out the file structures of this repository as follows:
+You may figure out the code structure as follows:
 
 ```
 Gyro-simulation
- │  gyro_tower.m                Main code for gyroscope tower simulation.
- |  wheel.m                     The wheel function, returns data for modeling.
- |____  examples
-         |  gyro-tower-*-irr.gif  The gif example simulations with gyroscopes spinning all in same direction.
-         |  gyro-tower-*-rev.gif  The gif example simulations with adjacent gyroscopes spinning in opposite directions.
+ │  gyro_tower.m        Main code for gyroscope tower simulation.
+ |  wheel.m             The wheel function, returns data for modeling.
 ```
 
 ## Results
 
-To be done...
+Some simulation videos are shown as follows:
 
-<img src="./examples/gyro-tower-1-irr.gif" width=45%> <img src="./examples/gyro-tower-1-rev.gif" width=45%>
+<img src="./examples/2-rev-1.0-30.0.gif" width=45%> <img src="./examples/3-rev-1.0-30.0.gif" width=45%> <img src="./examples/4-rev-1.0-30.0.gif" width=45%> <img src="./examples/5-rev-1.0-30.0.gif" width=45%> <img src="./examples/6-rev-1.0-30.0.gif" width=45%> <img src="./examples/7-rev-1.0-30.0.gif" width=45%>
 
-Simulation of a single gyroscope spinning with an initial angular velocity. The left and the right gyroscopes are spinning in opposite directions. A horizontal external force is applied to the top of its axle from the 2nd second to the 3rd second.
+We have also done parameter analysis on the radius of the gyroscopes and their initial angular velocity. It turns out that the larger the radius and the larger the angular velocity, the more stable the gyroscope will become.
 
-<img src="./examples/gyro-tower-2-irr.gif" width=45%> <img src="./examples/gyro-tower-2-rev.gif" width=45%>
-
-Simulation of two gyroscopes spinning with an initial angular velocity. The gyroscopes on the left spin in the same direction while those on the right spin in the opposite directions. A horizontal external force is applied to the top of the axle of the top gyroscope from the 2nd second to the 3rd second.
-
-<img src="./examples/gyro-tower-3-irr.gif" width=45%> <img src="./examples/gyro-tower-3-rev.gif" width=45%>
-
-Simulation of three gyroscopes spinning with an initial angular velocity. The gyroscopes on the left spin in the same direction while those on adjacent gyroscopes on the right spin in opposite directions. A horizontal external force is applied to the top of the axle of the top gyroscope from the 2nd second to the 3rd second.
+For more of our simulation and analysis results, check in [this folder](https://drive.google.com/drive/folders/1UpQE-VyRK9DaUnWq8wOW_s7JVZEpMOUg?usp=sharing) for our report, more simulation videos, and parameter analysis plots.
 
 ## References
 
